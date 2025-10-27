@@ -7,7 +7,7 @@ namespace CoreBankingTest.DAL.Repositories
     {
         private readonly List<AccountModel> _accounts = new() { 
             new AccountModel { Id = 1, Name = "John Doe", Balance = 5000 },
-            new AccountModel { Id = 2, Name = "Jane Smith", Balance = 7500 },
+            new AccountModel { Id = 2, Name = "Jane Smith", Balance = 7500, Currency = "USD" },
         };
         public void Add(AccountModel account) => _accounts.Add(account);
 
