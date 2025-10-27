@@ -1,0 +1,101 @@
+## ===========================
+## Build & Output
+## ===========================
+bin/
+obj/
+out/
+publish/
+Debug/
+Release/
+TestResults/
+*.log
+
+## ===========================
+## Entity Framework Core
+## ===========================
+# Keep migrations but ignore auto-generated designer files
+Migrations/*Designer.cs
+Migrations/*.ModelSnapshot.cs
+
+# EF Core bundle and cache files
+*.efbundle
+*.efcache
+*.dbmdl
+
+# Database files (for local testing with SQLite or LocalDB)
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+## ===========================
+## IDE & User Files
+## ===========================
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.userprefs
+*.rsuser
+*.code-workspace
+*.sln.iml
+
+## ===========================
+## Secrets & Config
+## ===========================
+*.env
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+
+## ===========================
+## Logs & Diagnostics
+## ===========================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.pid
+*.seed
+*.nlog
+*.svclog
+*.etl
+
+## ===========================
+## NuGet & Packages
+## ===========================
+*.nupkg
+*.snupkg
+*.nuspec
+packages/
+.nuget/
+
+## ===========================
+## Node (if frontend assets)
+## ===========================
+node_modules/
+npm-debug.log
+yarn-error.log
+
+## ===========================
+## Docker
+## ===========================
+docker-compose.override.yml
+**/Dockerfile.develop
+
+## ===========================
+## OS & Misc
+## ===========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+## ===========================
+## ReSharper & Rider
+## ===========================
+_ReSharper*/
+*.DotSettings.user
