@@ -1,6 +1,9 @@
 
 using CoreBankingTest.Core.Interfaces;
+using CoreBankingTest.CORE.Interfaces;
+using CoreBankingTest.DAL.Data;
 using CoreBankingTest.DAL.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace CoreBankingTest.Api
 {
@@ -10,8 +13,14 @@ namespace CoreBankingTest.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //Register dependencies (DI)
+            builder.Services.AddDbContext<BankingDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register repositories
+            builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+
 
             // Add services to the container.
 

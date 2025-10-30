@@ -1,5 +1,6 @@
 ﻿using CoreBankingTest.Core.Interfaces;
 using CoreBankingTest.Core.Models;
+using CoreBankingTest.Core.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CoreBankingTest.Api.Controllers
@@ -17,16 +18,17 @@ namespace CoreBankingTest.Api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAllAccounts()
+        public async Task<IActionResult> GetAllAccounts()
         {
-            var accounts = _accountRepository.GetAll();
+            var accounts = await _accountRepository.GetAllAsync();
             return Ok(accounts);
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetAccountById(int id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetAccount(Guid id)
         {
-            var account = _accountRepository.GetById(id);
+            var accountId = AccountId.Create(id);
+            var account = await _accountRepository.GetByIdAsync(accountId);
             if (account == null)
             {
                 return NotFound($"Account with ID {id} not found");
@@ -34,11 +36,5 @@ namespace CoreBankingTest.Api.Controllers
             return Ok(account);
         }
 
-        [HttpPost]
-        public IActionResult CreateAccount(AccountModel account)
-        {
-            _accountRepository.Add(account);
-            return CreatedAtAction(nameof(GetAccountById), new { id = account.Id }, account);
-        }
     }
 }

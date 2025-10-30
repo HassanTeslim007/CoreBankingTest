@@ -1,4 +1,6 @@
-﻿using CoreBankingTest.Core.Models;
+﻿using CoreBankingTest.Core.Interfaces;
+using CoreBankingTest.Core.Models;
+using CoreBankingTest.Core.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace CoreBankingTest.Core.Entities
 {
-    public class Customer
+    public class Customer : ISoftDelete
     {
-        public Guid CustomerId { get; private set; }
+        public CustomerId CustomerId { get; private set; }
+
         public string FirstName { get; private set; }
         public string LastName { get; private set; }
         public string Email { get; private set; }
@@ -21,9 +24,13 @@ namespace CoreBankingTest.Core.Entities
         private readonly List<Account> _accounts = new();
         public IReadOnlyCollection<Account> Accounts => _accounts.AsReadOnly();
 
-        public Customer(string firstName, string lastName, string email, string phoneNumber)
+        public bool IsDeleted { get; private set; }
+        public DateTime? DeletedAt { get; private set; }
+        public string? DeletedBy { get; private set; }
+
+        public Customer(CustomerId? customerId, string firstName, string lastName, string email, string phoneNumber)
         {
-            CustomerId= Guid.NewGuid();
+            CustomerId = customerId ?? CustomerId.Create(Guid.NewGuid());
             FirstName = firstName ?? throw new ArgumentNullException(nameof(firstName));
             LastName = lastName ?? throw new ArgumentNullException( nameof(lastName));
             Email = email ?? throw new ArgumentNullException( nameof(email));
@@ -52,6 +59,16 @@ namespace CoreBankingTest.Core.Entities
         internal void AddAccount(Account account)
         {
             _accounts.Add(account);
+        }
+
+        public void SoftDelete(string deletedBy)
+        {
+            if (Accounts.Any(a => a.Balance.Amount > 0))
+                throw new InvalidOperationException("Cannot delete customer with account balance");
+
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+            DeletedBy = deletedBy;
         }
     }
 }

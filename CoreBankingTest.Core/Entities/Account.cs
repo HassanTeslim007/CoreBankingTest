@@ -1,4 +1,5 @@
 ﻿using CoreBankingTest.Core.Enums;
+using CoreBankingTest.Core.Interfaces;
 using CoreBankingTest.Core.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -9,28 +10,35 @@ using System.Threading.Tasks;
 
 namespace CoreBankingTest.Core.Entities
 {
-    public class Account
+    public class Account : ISoftDelete
     {
-        public Guid AccountId { get; private set; }
+        public AccountId AccountId { get; private set; }
+        public Customer Customer { get; private set; }
         public AccountNumber AccountNumber { get; private set; }
         public AccountType AccountType { get; private set; }
         public Money Balance { get; private set; }
-        public Guid CustomerId { get; private set; }
+        public CustomerId CustomerId { get; private set; }
         public DateTime DateOpened { get; private set; }
         public bool IsActive { get; private set; }
+
+        public bool IsDeleted { get; private set; }
+        public DateTime? DeletedAt { get; private set; }
+        public string? DeletedBy { get; private set; }
+
+        public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
         //Navigation properties - private to enforce aggregate boundaries
 
         private readonly List<Transaction> _transactions = new();
 
-        public IReadOnlyCollection<Transaction> Transaction => _transactions.AsReadOnly();
+        public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
         //Required for EF Core
         private Account() { }
 
-        public Account(AccountNumber accountNumber, AccountType accountType, Guid customerId)
+        public Account(AccountNumber accountNumber, AccountType accountType, CustomerId customerId)
         {
-            AccountId = Guid.NewGuid();
+            AccountId = AccountId.Create();
             AccountNumber = accountNumber;
             AccountType = accountType;
             CustomerId = customerId;
@@ -83,6 +91,16 @@ namespace CoreBankingTest.Core.Entities
         public void CloseAccount()
         {
             if (Balance.Amount != 0) throw new InvalidOperationException("");
+        }
+
+        public void SoftDelete(string deletedBy)
+        {
+            if (Balance.Amount != 0)
+                throw new InvalidOperationException("Cannot close account with non-zero balance");
+
+            IsDeleted = true;
+            DeletedAt = DateTime.UtcNow;
+            DeletedBy = deletedBy;
         }
 
     }

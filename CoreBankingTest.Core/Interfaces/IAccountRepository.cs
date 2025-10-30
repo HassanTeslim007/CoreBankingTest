@@ -6,14 +6,15 @@ namespace CoreBankingTest.Core.Interfaces
 {
     public interface IAccountRepository
     {
-        Task<Account> GetByIdAsync(Guid id);
-        Task<Account> GetByAccountNumberAsync(Account account);
-        Task<IEnumerable<Account>> GetByCustomerIdAsync(Guid customerId);
+
+        Task<Account> GetByIdAsync(AccountId id);
+        Task<Account> GetByAccountNumberAsync(AccountNumber accountNumber);
+        Task<IEnumerable<Account>> GetByCustomerIdAsync(CustomerId customerId);
         Task AddAsync(Account account);
         Task UpdateAsync(Account account);
         Task<bool> AccountNumberExistsAsync(AccountNumber accountNumber);
-        AccountModel GetById(int id);
-        IEnumerable<AccountModel> GetAll();
-        void Add(AccountModel account);
+        //AccountModel GetById(int id);
+        Task<List<Account>> GetAllAsync();
+        //void Add(AccountModel account);
     }
 }

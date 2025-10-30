@@ -1,15 +1,29 @@
-﻿using System;
+﻿using CoreBankingTest.Core.Entities;
+using CoreBankingTest.Core.ValueObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 
-namespace CoreBankingTest.Core.Interfaces
+namespace CoreBankingTest.CORE.Interfaces
 {
-    internal interface ITransactionRepository
+
+    public interface ITransactionRepository
     {
-        Task<IEnumerable<Transaction>> GetByAccountIdAsync(Guid accountId);
-        Task AddAsync(Transaction transaction);
+        Task<Transaction?> GetByIdAsync(TransactionId transactionId, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<Transaction>> GetByAccountIdAsync(AccountId accountId, CancellationToken cancellationToken = default);
+
+        Task<IEnumerable<Transaction>> GetByAccountIdAndDateRangeAsync(
+            AccountId accountId,
+            DateTime startDate,
+            DateTime endDate,
+            CancellationToken cancellationToken = default);
+
+        Task AddAsync(Transaction transaction, CancellationToken cancellationToken = default);
+
+        Task UpdateAsync(Transaction transaction, CancellationToken cancellationToken = default);
     }
+
 }
