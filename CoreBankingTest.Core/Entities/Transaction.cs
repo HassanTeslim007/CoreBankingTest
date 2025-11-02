@@ -22,15 +22,16 @@ namespace CoreBankingTest.Core.Entities
         //required for EF Core
         private Transaction() { }
 
-        public Transaction( AccountId accountId, TransactionType type, Money amount, string description)
+        public Transaction( AccountId accountId, TransactionType type, Money amount, string description, Account account, string reference = "")
         {
             TransactionId = TransactionId.Create();
+            Account = account;
             AccountId = accountId;
             Type = type;
             Amount = amount;
             Description = description;
             Timestamp = DateTime.UtcNow;
-            Reference = GenerateReference();
+            Reference =string.IsNullOrEmpty(reference) ? GenerateReference() : reference;
         }
 
         private string GenerateReference() {
