@@ -1,5 +1,4 @@
 ﻿using CoreBankingTest.Core.Entities;
-using CoreBankingTest.Core.Models;
 using CoreBankingTest.Core.ValueObjects;
 
 namespace CoreBankingTest.Core.Interfaces

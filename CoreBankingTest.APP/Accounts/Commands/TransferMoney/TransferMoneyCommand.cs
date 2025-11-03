@@ -1,7 +1,5 @@
 ﻿using CoreBankingTest.APP.Common.Interfaces;
 using CoreBankingTest.APP.Common.Models;
-using CoreBankingTest.Core.Entities;
-using CoreBankingTest.Core.Enums;
 using CoreBankingTest.Core.Interfaces;
 using CoreBankingTest.Core.ValueObjects;
 using CoreBankingTest.CORE.Interfaces;
@@ -9,17 +7,17 @@ using MediatR;
 
 namespace CoreBankingTest.APP.Accounts.Commands.CreateAccount;
 
-public record TransaferMoneyCommand : ICommand<Guid>
+public record TransferMoneyCommand : ICommand<Guid>
 {
-    public string SourceAccountNumber { get; init; } = string.Empty;
-    public string DestinationAccountNumber { get; init; } = string.Empty;
-    public decimal Amount { get; init; }
+    public AccountNumber SourceAccountNumber { get; init; } = new AccountNumber(string.Empty);
+    public AccountNumber DestinationAccountNumber { get; init; } = new AccountNumber(string.Empty);
+    public Money Amount { get; init; } = new Money(0, "NGN");
     public string Currency { get; init; } = "NGN";
     public string Reference { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
 }
 
-public class TransaferMoneyCommandHandler : IRequestHandler<TransaferMoneyCommand, Result>
+public class TransaferMoneyCommandHandler : IRequestHandler<TransferMoneyCommand, Result>
 {
     private readonly IAccountRepository _accountRepository;
     private readonly ITransactionRepository _transactionRepository;
@@ -35,7 +33,7 @@ public class TransaferMoneyCommandHandler : IRequestHandler<TransaferMoneyComman
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> Handle(TransaferMoneyCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(TransferMoneyCommand request, CancellationToken cancellationToken)
     {
 
         try
@@ -50,7 +48,7 @@ public class TransaferMoneyCommandHandler : IRequestHandler<TransaferMoneyComman
             //Execute Transafer using domain logic - this will now throw exceptions
 
             sourceAccount.Transfer(
-                amount: new Money(request.Amount, request.Currency),
+                amount: request.Amount,
                 destination: destAccount,
                 reference: request.Reference,
                 description: request.Description

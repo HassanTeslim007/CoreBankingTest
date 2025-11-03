@@ -1,11 +1,5 @@
 ﻿using CoreBankingTest.Core.Interfaces;
-using CoreBankingTest.Core.Models;
 using CoreBankingTest.Core.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CoreBankingTest.Core.Entities
 {

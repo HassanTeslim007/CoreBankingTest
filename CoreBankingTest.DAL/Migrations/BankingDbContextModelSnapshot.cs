@@ -27,6 +27,12 @@ namespace CoreBankingTest.DAL.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("AccountNumber");
+
                     b.Property<string>("AccountType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -65,9 +71,10 @@ namespace CoreBankingTest.DAL.Migrations
                         new
                         {
                             AccountId = new Guid("c3d4e5f6-3456-7890-cde1-345678901cde"),
+                            AccountNumber = "1000000001",
                             AccountType = "Checking",
                             CustomerId = new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"),
-                            DateOpened = new DateTime(2025, 10, 10, 8, 48, 58, 956, DateTimeKind.Utc).AddTicks(917),
+                            DateOpened = new DateTime(2025, 10, 14, 8, 1, 50, 696, DateTimeKind.Utc).AddTicks(6848),
                             IsActive = true,
                             IsDeleted = false
                         });
@@ -121,7 +128,7 @@ namespace CoreBankingTest.DAL.Migrations
                         new
                         {
                             CustomerId = new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"),
-                            DateCreated = new DateTime(2025, 9, 30, 8, 48, 58, 955, DateTimeKind.Utc).AddTicks(2722),
+                            DateCreated = new DateTime(2025, 10, 4, 8, 1, 50, 696, DateTimeKind.Utc).AddTicks(253),
                             Email = "alice.johnson@email.com",
                             FirstName = "Alice",
                             IsActive = true,
@@ -204,35 +211,6 @@ namespace CoreBankingTest.DAL.Migrations
                                     Currency = "NGN"
                                 });
                         });
-
-                    b.OwnsOne("CoreBankingTest.Core.ValueObjects.AccountNumber", "AccountNumber", b1 =>
-                        {
-                            b1.Property<Guid>("AccountId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(10)
-                                .HasColumnType("nvarchar(10)")
-                                .HasColumnName("AccountNumber");
-
-                            b1.HasKey("AccountId");
-
-                            b1.ToTable("Accounts");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AccountId");
-
-                            b1.HasData(
-                                new
-                                {
-                                    AccountId = new Guid("c3d4e5f6-3456-7890-cde1-345678901cde"),
-                                    Value = "1000000001"
-                                });
-                        });
-
-                    b.Navigation("AccountNumber")
-                        .IsRequired();
 
                     b.Navigation("Balance")
                         .IsRequired();

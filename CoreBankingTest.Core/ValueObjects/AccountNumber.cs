@@ -9,6 +9,9 @@ namespace CoreBankingTest.Core.ValueObjects
     public record AccountNumber
     {
         public string Value {get;}
+        private AccountNumber() : this(string.Empty) { }
+
+        public static AccountNumber Create(string value) => new(value);
 
         public AccountNumber(string value)
         {

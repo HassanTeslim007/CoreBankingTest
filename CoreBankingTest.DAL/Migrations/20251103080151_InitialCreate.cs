@@ -86,12 +86,12 @@ namespace CoreBankingTest.DAL.Migrations
             migrationBuilder.InsertData(
                 table: "Customers",
                 columns: new[] { "CustomerId", "DateCreated", "DeletedAt", "DeletedBy", "Email", "FirstName", "IsActive", "IsDeleted", "LastName", "PhoneNumber" },
-                values: new object[] { new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"), new DateTime(2025, 9, 30, 8, 48, 58, 955, DateTimeKind.Utc).AddTicks(2722), null, null, "alice.johnson@email.com", "Alice", true, false, "Johnson", "555-0101" });
+                values: new object[] { new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"), new DateTime(2025, 10, 4, 8, 1, 50, 696, DateTimeKind.Utc).AddTicks(253), null, null, "alice.johnson@email.com", "Alice", true, false, "Johnson", "555-0101" });
 
             migrationBuilder.InsertData(
                 table: "Accounts",
-                columns: new[] { "AccountId", "AccountType", "CustomerId", "DateOpened", "DeletedAt", "DeletedBy", "IsActive", "IsDeleted", "Amount", "Currency", "AccountNumber" },
-                values: new object[] { new Guid("c3d4e5f6-3456-7890-cde1-345678901cde"), "Checking", new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"), new DateTime(2025, 10, 10, 8, 48, 58, 956, DateTimeKind.Utc).AddTicks(917), null, null, true, false, 1500.00m, "NGN", "1000000001" });
+                columns: new[] { "AccountId", "AccountNumber", "AccountType", "CustomerId", "DateOpened", "DeletedAt", "DeletedBy", "IsActive", "IsDeleted", "Amount", "Currency" },
+                values: new object[] { new Guid("c3d4e5f6-3456-7890-cde1-345678901cde"), "1000000001", "Checking", new Guid("a1b2c3d4-1234-5678-9abc-123456789abc"), new DateTime(2025, 10, 14, 8, 1, 50, 696, DateTimeKind.Utc).AddTicks(6848), null, null, true, false, 1500.00m, "NGN" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_CustomerId",
