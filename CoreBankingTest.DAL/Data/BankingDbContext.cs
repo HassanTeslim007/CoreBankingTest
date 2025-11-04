@@ -1,8 +1,12 @@
 ﻿// CoreBanking.Infrastructure/Data/BankingDbContext.cs
+using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
 using CoreBankingTest.Core.Enums;
 using CoreBankingTest.Core.ValueObjects;
+using CoreBankingTest.DAL.Persistence.Configurations;
+using CoreBankingTest.DAL.Persistence.Outbox;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace CoreBankingTest.DAL.Data
 {
@@ -14,10 +18,13 @@ namespace CoreBankingTest.DAL.Data
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Account> Accounts => Set<Account>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
+        public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
 
             // Customer configuration
             modelBuilder.Entity<Customer>(entity =>
@@ -159,6 +166,23 @@ namespace CoreBankingTest.DAL.Data
                 }
             );
 
+        }
+        public async Task SaveChangesWithOutboxAsync(CancellationToken cancellationToken = default)
+        {            // Convert domain events to outbox messages           
+            var events = ChangeTracker.Entries<AggregateRoot<AccountId>>()
+                .SelectMany(x => x.Entity.DomainEvents)
+                .Select(domainEvent => new OutboxMessage 
+                { Id = Guid.NewGuid(), 
+                  Type = domainEvent.GetType().Name, 
+                  Content = JsonSerializer.Serialize(domainEvent, domainEvent.GetType()), 
+                  OccurredOn = domainEvent.OccurredOn })
+                .ToList();
+            // Clear domain events from aggregates           
+            ChangeTracker.Entries<AggregateRoot<AccountId>>().ToList().ForEach(entry => entry.Entity.ClearDomainEvents());
+            // Save changes (including outbox messages) in single transaction         
+            await base.SaveChangesAsync(cancellationToken);
+            // Add outbox messages after saving to ensure they're included in transaction           
+            if (events.Any()) { await OutboxMessages.AddRangeAsync(events, cancellationToken); await base.SaveChangesAsync(cancellationToken); }
         }
     }
 }

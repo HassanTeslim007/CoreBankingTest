@@ -1,24 +1,32 @@
 ﻿// CoreBanking.Core/Events/MoneyTransferredEvent.cs
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
+using CoreBankingTest.Core.Events;
 using CoreBankingTest.Core.ValueObjects;
 
 namespace CoreBanking.Core.Events;
 
-public class MoneyTransferredEvent : IDomainEvent
+public record MoneyTransferredEvent : DomainEvent
 {
-    public Account SourceAccount { get; }
-    public Account DestinationAccount { get; }
+    public TransactionId TransactionId { get; }
+    public AccountNumber SourceAccountNumber { get; }
+    public AccountNumber DestinationAccount { get; }
     public Money Amount { get; }
     public string Reference { get; }
-    public DateTime OccurredOn { get; }
+    public DateTime TransferDate { get; }
 
-    public MoneyTransferredEvent(Account sourceAccount, Account destinationAccount, Money amount, string reference)
+    public MoneyTransferredEvent(
+        TransactionId transactionId,
+        AccountNumber sourceAccountNumber,
+        AccountNumber destinationAccount,
+        Money amount,
+        string reference)
     {
-        SourceAccount = sourceAccount;
+        TransactionId = transactionId;
+        SourceAccountNumber = sourceAccountNumber;
         DestinationAccount = destinationAccount;
         Amount = amount;
         Reference = reference;
-        OccurredOn = DateTime.UtcNow;
+        TransferDate = DateTime.UtcNow;
     }
 }

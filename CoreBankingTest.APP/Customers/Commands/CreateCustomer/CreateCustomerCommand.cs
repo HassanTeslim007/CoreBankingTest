@@ -1,4 +1,7 @@
 ﻿using CoreBankingTest.APP.Common.Interfaces;
+using CoreBankingTest.APP.Common.Models;
+using CoreBankingTest.Core.Interfaces;
+using MediatR;
 
 namespace CoreBankingTest.APP.Customers.Commands.CreateCustomer;
 

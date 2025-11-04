@@ -1,17 +1,31 @@
 ﻿// CoreBanking.Core/Events/AccountCreatedEvent.cs
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
+using CoreBankingTest.Core.Enums;
+using CoreBankingTest.Core.Events;
+using CoreBankingTest.Core.ValueObjects;
 
 namespace CoreBanking.Core.Events;
 
-public class AccountCreatedEvent : IDomainEvent
+public record AccountCreatedEvent : DomainEvent
 {
-    public Account Account { get; }
-    public DateTime OccurredOn { get; }
+    public AccountId AccountId { get; }
+    public AccountNumber AccountNumber { get; }
+    public CustomerId CustomerId { get; }
+    public AccountType AccountType{ get; }  
+    public Money InitialDeposit { get; }
 
-    public AccountCreatedEvent(Account account)
+    public AccountCreatedEvent(
+        AccountId accountId,
+        AccountNumber accountNumber,
+        CustomerId customerId,
+        AccountType accountType,
+        Money initialDeposit)
     {
-        Account = account;
-        OccurredOn = DateTime.UtcNow;
+        AccountId = accountId;
+        AccountNumber = accountNumber;
+        CustomerId = customerId;
+        AccountType = accountType;
+        InitialDeposit = initialDeposit;
     }
 }
