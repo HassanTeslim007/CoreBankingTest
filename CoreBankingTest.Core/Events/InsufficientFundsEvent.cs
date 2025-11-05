@@ -1,4 +1,5 @@
-﻿using CoreBankingTest.Core.ValueObjects;
+﻿using CoreBankingTest.Core.Common;
+using CoreBankingTest.Core.ValueObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;

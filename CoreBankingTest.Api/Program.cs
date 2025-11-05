@@ -1,14 +1,22 @@
 
+using CoreBanking.Core.Events;
+using CoreBankingTest.Api.gRPC.Mappings;
 using CoreBankingTest.Api.Middleware;
+using CoreBankingTest.Api.Services;
 using CoreBankingTest.APP.Accounts.Commands.CreateAccount;
+using CoreBankingTest.APP.Accounts.EventHandlers;
 using CoreBankingTest.APP.Common.Behaviours;
+using CoreBankingTest.APP.Common.Interfaces;
 using CoreBankingTest.APP.Common.Mappings;
+using CoreBankingTest.Core.Events;
 using CoreBankingTest.Core.Interfaces;
 using CoreBankingTest.CORE.Interfaces;
 using CoreBankingTest.DAL.Data;
 using CoreBankingTest.DAL.Repositories;
+using CoreBankingTest.DAL.Services;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
@@ -22,41 +30,90 @@ namespace CoreBankingTest.Api
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<BankingDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            builder.Services.AddAutoMapper(cfg => { }, typeof(AccountProfile).Assembly);
+            // Add Application and Infrastructure Services
+            //builder.Services.AddApplicationServices();
+            //builder.Services.AddInfrastructureServices(builder.Configuration);
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                // HTTP (for Swagger, REST, etc.)
+                options.ListenLocalhost(5037, o =>
+                {
+                    o.Protocols = HttpProtocols.Http1;
+                });
 
-            // Register repositories
+                // HTTPS (for gRPC, requires HTTP/2)
+                options.ListenLocalhost(7288, o =>
+                {
+                    o.UseHttps(); // uses developer cert
+                    o.Protocols = HttpProtocols.Http2;
+                });
+            });
+
+            // Register dependencies (DI)
+
+            // Register Repositories
             builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
-            // Add FluentValidation
-            builder.Services.AddValidatorsFromAssembly(typeof(CreateAccountCommandValidator).Assembly);
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
+            // Register domain event handlers
+            builder.Services.AddTransient<INotificationHandler<AccountCreatedEvent>, AccountCreatedEventHandler>();
+            builder.Services.AddTransient<INotificationHandler<MoneyTransferedEvent>, MoneyTransferedEventHandler>();
+            builder.Services.AddTransient<INotificationHandler<InsufficientFundsEvent>, InsufficientFundsEventHandler>();
+
+            // Register pipeline behaviors
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(DomainEventsBehaviour<,>));
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
 
-            //Add MediatR with Behaviors
+            // Add gRPC services to the container.
+            builder.Services.AddGrpc(options =>
+            {
+                options.EnableDetailedErrors = true;
+                //options.Interceptors.Add<ExceptionInterceptor>();
+            });
+            builder.Services.AddGrpcReflection();
+
+            // Add MediatR with behaviours
             builder.Services.AddMediatR(cfg =>
             {
+                // Note: Registering one command is enough per Layer—MediatR scans the entire Application assembly (all Commands & Queries).
                 cfg.RegisterServicesFromAssembly(typeof(CreateAccountCommand).Assembly);
+
                 cfg.AddOpenBehavior(typeof(ValidationBehaviour<,>));
                 cfg.AddOpenBehavior(typeof(LoggingBehaviour<,>));
+                cfg.AddOpenBehavior(typeof(DomainEventsBehaviour<,>));
+
                 cfg.Lifetime = ServiceLifetime.Scoped;
             });
 
-            // Add Swagger/OpenAPI
+            // Add Validators and AutoMapper
+            builder.Services.AddValidatorsFromAssembly(typeof(CreateAccountCommandValidator).Assembly);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(AccountProfile).Assembly);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(AccountGrpcProfile).Assembly);
+
+            // Register outbox and Background services
+            builder.Services.AddScoped<IOutboxMessageProcessor, OutboxMessageProcessor>();
+            builder.Services.AddHostedService<OutboxBackgroundService>();
+
+            // Add controllers and swagger
+            builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+
+            // Enriched swaggerGen with XML comments and authentication
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "CoreBanking API",
                     Version = "v1",
-                    Description = "A modern banking API built with Clean Architecture and CQRS",
+                    Description = "A modern banking API built with Clean Architecture, DDD and CQRS",
                     Contact = new OpenApiContact
                     {
                         Name = "CoreBanking Team",
@@ -81,25 +138,15 @@ namespace CoreBankingTest.Api
             });
 
 
-            // Add services to the container.
-            builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-            });
-
-
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-
             var app = builder.Build();
 
-            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger(options => options.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0);
+
+                // Enriched Swagger UI
                 app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "CoreBanking API v1");
@@ -112,10 +159,19 @@ namespace CoreBankingTest.Api
 
             app.UseHttpsRedirection();
 
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            //Use grpc Endpoints
+            app.MapGrpcService<AccountGrpcService>();
+            app.MapGet("/", () => "CoreBanking API is running. Use /swagger for REST or a gRPC client for gRPC calls.");
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapGrpcReflectionService();
+            }
 
             app.Run();
         }

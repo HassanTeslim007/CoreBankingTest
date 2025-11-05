@@ -5,14 +5,14 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreBankingTest.APP.Common.Behaviours
 {
-    public class DomainEventBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class DomainEventsBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
           where TRequest : IRequest<TResponse>
     {
         private readonly IDomainEventDispatcher _dispatcher;
-        private readonly ILogger<DomainEventBehaviour<TRequest, TResponse>> _logger;
+        private readonly ILogger<DomainEventsBehaviour<TRequest, TResponse>> _logger;
 
-        public DomainEventBehaviour(IDomainEventDispatcher dispatcher,
-            ILogger<DomainEventBehaviour<TRequest, TResponse>> logger)
+        public DomainEventsBehaviour(IDomainEventDispatcher dispatcher,
+            ILogger<DomainEventsBehaviour<TRequest, TResponse>> logger)
         {
             _dispatcher = dispatcher;
             _logger = logger;

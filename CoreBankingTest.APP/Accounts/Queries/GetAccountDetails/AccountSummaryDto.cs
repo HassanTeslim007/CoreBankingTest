@@ -11,7 +11,7 @@ namespace CoreBankingTest.APP.Accounts.Queries.GetAccountDetails
 {
     public record AccountSummaryDto
     {
-        public AccountNumber AccountNumber { get; init; } = AccountNumber.Create(string.Empty);
+        public AccountNumber AccountNumber { get; init; }
         public string AccountType { get; init; } = string.Empty;
         public string DisplayName { get; init; } = string.Empty;
         public decimal Balance { get; init; }

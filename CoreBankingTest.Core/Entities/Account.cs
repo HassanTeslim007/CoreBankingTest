@@ -172,7 +172,7 @@ namespace CoreBankingTest.Core.Entities
 
             // Raise money transferred event
             var transactionId = TransactionId.Create();
-            _domainEvents.Add(new MoneyTransferredEvent(
+            _domainEvents.Add(new MoneyTransferedEvent(
                 transactionId, AccountNumber, destination.AccountNumber, amount, reference));
 
             // Return success result

@@ -2,7 +2,6 @@
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
 using CoreBankingTest.Core.Enums;
-using CoreBankingTest.Core.Events;
 using CoreBankingTest.Core.ValueObjects;
 
 namespace CoreBanking.Core.Events;

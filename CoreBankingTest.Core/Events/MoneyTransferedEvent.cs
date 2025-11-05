@@ -1,12 +1,11 @@
 ﻿// CoreBanking.Core/Events/MoneyTransferredEvent.cs
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
-using CoreBankingTest.Core.Events;
 using CoreBankingTest.Core.ValueObjects;
 
 namespace CoreBanking.Core.Events;
 
-public record MoneyTransferredEvent : DomainEvent
+public record MoneyTransferedEvent : DomainEvent
 {
     public TransactionId TransactionId { get; }
     public AccountNumber SourceAccountNumber { get; }
@@ -15,7 +14,7 @@ public record MoneyTransferredEvent : DomainEvent
     public string Reference { get; }
     public DateTime TransferDate { get; }
 
-    public MoneyTransferredEvent(
+    public MoneyTransferedEvent(
         TransactionId transactionId,
         AccountNumber sourceAccountNumber,
         AccountNumber destinationAccount,

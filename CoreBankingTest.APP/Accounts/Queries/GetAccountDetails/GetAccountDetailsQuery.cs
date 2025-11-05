@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace CoreBankingTest.APP.Accounts.Queries.GetAccountDetails
 {
     public record GetAccountDetailsQuery : IQuery<AccountDetailsDto>
-    { public AccountNumber AccountNumber { get; init; } = AccountNumber.Create(string.Empty); }
+    { public AccountNumber AccountNumber { get; init; }}
     public record AccountDetailsDto { 
         public string AccountNumber { get; init; } = string.Empty; 
         public string AccountType { get; init; } = string.Empty; 
