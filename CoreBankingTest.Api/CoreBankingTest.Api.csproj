@@ -37,6 +37,7 @@
 	<ItemGroup>
 		<Protobuf Include="gRPC\Protos\account.proto" GrpcServices="Server" />
 		<Protobuf Include="gRPC\Protos\common.proto" GrpcServices="Server" />
+		<Protobuf Include="gRPC\Protos\enhanced_account.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 	<ItemGroup>

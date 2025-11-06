@@ -82,7 +82,8 @@ namespace CoreBankingTest.API.Controllers
         /// <summary>
         /// Transfer money between accounts
         /// </summary>
-        /// <param name="accountNumber">Source account number</param>
+        /// <param name="sourceaccountNumber">Source account number</param>
+        /// <param name="destinationaccountnumber">Destination account number</param>
         /// <param name="request">Transfer details</param>
         /// <returns>Transfer operation result</returns>
         /// <response code="200">Transfer completed successfully</response>
@@ -93,15 +94,15 @@ namespace CoreBankingTest.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ApiResponse>> TransferMoney(
-            string accountNumber,
+            string sourceaccountNumber, string destinationaccountnumber,
             [FromBody] TransferMoneyRequest request)
         {
-            _logger.LogInformation("Processing transfer from {AccountNumber}", accountNumber);
+            _logger.LogInformation("Processing transfer from {sourceaccountnumber}", sourceaccountNumber);
 
             var command = new TransferMoneyCommand
             {
-                SourceAccountNumber = AccountNumber.Create(accountNumber),
-                DestinationAccountNumber = AccountNumber.Create(request.DestinationAccountNumber),
+                SourceAccountNumber = AccountNumber.Create(sourceaccountNumber),
+                DestinationAccountNumber = AccountNumber.Create(destinationaccountnumber),
                 Amount = new Money(request.Amount, request.Currency),
                 Reference = request.Reference,
                 Description = request.Description
