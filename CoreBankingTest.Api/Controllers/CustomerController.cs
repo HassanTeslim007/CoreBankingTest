@@ -4,6 +4,7 @@ using CoreBankingTest.Api.Models.Requests;
 using CoreBankingTest.APP.Customers.Commands.CreateCustomer;
 using CoreBankingTest.APP.Customers.Queries.GetCustomerDetails;
 using CoreBankingTest.APP.Customers.Queries.GetCustomers;
+using CoreBankingTest.Core.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -63,7 +64,7 @@ namespace CoreBankingTest.Api.Controllers
             return CreatedAtAction(
                 nameof(GetCustomer),
                 new { customerId = result.Data },
-                ApiResponse<Guid>.CreateSuccess(result.Data!));
+                ApiResponse<CustomerId>.CreateSuccess(result.Data!));
         }
     }
 }

@@ -9,7 +9,7 @@ public record MoneyTransferedEvent : DomainEvent
 {
     public TransactionId TransactionId { get; }
     public AccountNumber SourceAccountNumber { get; }
-    public AccountNumber DestinationAccount { get; }
+    public AccountNumber DestinationAccountNumber { get; }
     public Money Amount { get; }
     public string Reference { get; }
     public DateTime TransferDate { get; }
@@ -23,7 +23,7 @@ public record MoneyTransferedEvent : DomainEvent
     {
         TransactionId = transactionId;
         SourceAccountNumber = sourceAccountNumber;
-        DestinationAccount = destinationAccount;
+        DestinationAccountNumber = destinationAccount;
         Amount = amount;
         Reference = reference;
         TransferDate = DateTime.UtcNow;

@@ -13,6 +13,9 @@ namespace CoreBankingTest.Core.Entities
         public string PhoneNumber { get; private set; }
         public DateTime DateCreated { get; private set; }
         public bool IsActive { get; private set; }
+        public string BVN { get; private set; }
+        public int CreditScore { get; private set; }
+        public DateTime DateOfBirth { get; private set; }
 
         //Navigation properties for account
         private readonly List<Account> _accounts = new();
@@ -22,15 +25,18 @@ namespace CoreBankingTest.Core.Entities
         public DateTime? DeletedAt { get; private set; }
         public string? DeletedBy { get; private set; }
 
-        public Customer(CustomerId? customerId, string firstName, string lastName, string email, string phoneNumber)
+        public Customer(string firstName, string lastName, string email, string phoneNumber, DateTime dateOfBirth, string bVN, int creditScore)
         {
-            CustomerId = customerId ?? CustomerId.Create(Guid.NewGuid());
+            CustomerId = CustomerId.Create();
             FirstName = firstName ?? throw new ArgumentNullException(nameof(firstName));
-            LastName = lastName ?? throw new ArgumentNullException( nameof(lastName));
-            Email = email ?? throw new ArgumentNullException( nameof(email));
+            LastName = lastName ?? throw new ArgumentNullException(nameof(lastName));
+            Email = email ?? throw new ArgumentNullException(nameof(email));
             PhoneNumber = phoneNumber ?? throw new ArgumentNullException(nameof(phoneNumber));
             DateCreated = DateTime.UtcNow;
             IsActive = true;
+            BVN = bVN;
+            CreditScore = creditScore;
+            DateOfBirth = dateOfBirth;
         }
 
         //Business Methods

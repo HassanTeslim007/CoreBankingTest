@@ -34,7 +34,7 @@ namespace CoreBankingTest.Api.Hubs.EventHandlers
                     AccountNumber = notification.SourceAccountNumber.ToString(),
                     Amount = -notification.Amount.Amount, // Negative for debit
                     Type = "Debit",
-                    Description = $"Transfer to {notification.DestinationAccount}",
+                    Description = $"Transfer to {notification.DestinationAccountNumber}",
                     Timestamp = notification.TransferDate,
                     RunningBalance = 0 // Would need to fetch current balance
                 };
@@ -46,7 +46,7 @@ namespace CoreBankingTest.Api.Hubs.EventHandlers
                 var destNotification = new TransactionNotification
                 {
                     TransactionId = notification.TransactionId.ToString(),
-                    AccountNumber = notification.DestinationAccount.ToString(),
+                    AccountNumber = notification.DestinationAccountNumber.ToString(),
                     Amount = notification.Amount.Amount, // Positive for credit
                     Type = "Credit",
                     Description = $"Transfer from {notification.SourceAccountNumber}",
@@ -54,7 +54,7 @@ namespace CoreBankingTest.Api.Hubs.EventHandlers
                     RunningBalance = 0 // Would need to fetch current balance
                 };
 
-                await _hubContext.Clients.Group($"account-{notification.DestinationAccount}")
+                await _hubContext.Clients.Group($"account-{notification.DestinationAccountNumber}")
                     .ReceiveTransactionNotification(destNotification);
 
                 _logger.LogInformation(
