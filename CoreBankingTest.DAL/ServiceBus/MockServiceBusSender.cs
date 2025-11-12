@@ -1,14 +1,10 @@
-﻿using CoreBankingTest.Core.Interfaces;
+﻿using Azure.Messaging.ServiceBus;
+using CoreBankingTest.DAL.ServiceBus;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CoreBankingTest.DAL.ServiceBus
+namespace CoreBankingTest.Infrastructure.ServiceBus
 {
-    public class MockServiceBusSender : IServiceBusSender
+    public class MockServiceBusSender : IBankingServiceBusSender
     {
         private readonly ILogger<MockServiceBusSender> _logger;
 
@@ -40,6 +36,11 @@ namespace CoreBankingTest.DAL.ServiceBus
         }
 
         public ValueTask DisposeAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SendMessageAsync(string queueOrTopicName, ServiceBusMessage message, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

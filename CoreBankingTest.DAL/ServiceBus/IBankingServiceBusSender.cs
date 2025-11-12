@@ -1,6 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 
-namespace CoreBankingTest.Infrastructure.ServiceBus;
+namespace CoreBankingTest.DAL.ServiceBus;
 
 public interface IBankingServiceBusSender : IAsyncDisposable
 {

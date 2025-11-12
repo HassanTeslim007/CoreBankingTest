@@ -178,7 +178,7 @@ namespace CoreBankingTest.Core.Entities
             var transactionId = TransactionId.Create();
             var transaction = new Transaction(
                 this.AccountId,
-                CoreBankingTest.Core.Enums.TransactionType.TransferOut,
+                TransactionType.TransferOut,
                 transferAmount,
                 transferDescription,
                 this,

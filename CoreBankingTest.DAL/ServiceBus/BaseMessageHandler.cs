@@ -1,29 +1,28 @@
 ﻿using Azure.Messaging.ServiceBus;
+using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace CoreBankingTest.DAL.ServiceBus
 {
-
     public abstract class BaseMessageHandler<TMessage> : IAsyncDisposable
     {
         private readonly ServiceBusProcessor _processor;
         private readonly ILogger<BaseMessageHandler<TMessage>> _logger;
         private bool _disposed = false;
+        protected readonly IMediator _mediator;
 
         protected BaseMessageHandler(
             IServiceBusClientFactory clientFactory,
             string queueOrTopicName,
             string subscriptionName,
             ILogger<BaseMessageHandler<TMessage>> logger,
+            IMediator mediator,
             ServiceBusProcessorOptions processorOptions = null)
         {
             _logger = logger;
+            _mediator = mediator;
 
             processorOptions ??= new ServiceBusProcessorOptions
             {
@@ -32,9 +31,17 @@ namespace CoreBankingTest.DAL.ServiceBus
                 AutoCompleteMessages = false
             };
 
-            _processor = string.IsNullOrEmpty(subscriptionName)
-                ? clientFactory.CreateProcessor(queueOrTopicName, processorOptions)
-                : clientFactory.CreateProcessor(queueOrTopicName, subscriptionName, processorOptions);
+            // Corrected processor creation
+            if (string.IsNullOrEmpty(subscriptionName))
+            {
+                // Processing from a QUEUE
+                _processor = clientFactory.CreateProcessor(queueOrTopicName, processorOptions);
+            }
+            else
+            {
+                // Processing from a TOPIC SUBSCRIPTION
+                _processor = clientFactory.CreateProcessor(queueOrTopicName, subscriptionName, processorOptions);
+            }
 
             _processor.ProcessMessageAsync += ProcessMessageAsync;
             _processor.ProcessErrorAsync += ProcessErrorAsync;
@@ -69,7 +76,8 @@ namespace CoreBankingTest.DAL.ServiceBus
 
                 if (domainEvent != null)
                 {
-                    await HandleMessageAsync(domainEvent, args.CancellationToken);
+                    // Use MediatR to publish to your existing CQRS handlers
+                    await _mediator.Publish(domainEvent, args.CancellationToken);
                     await args.CompleteMessageAsync(message, args.CancellationToken);
 
                     _logger.LogInformation("Successfully processed message {MessageId}", message.MessageId);
@@ -97,7 +105,6 @@ namespace CoreBankingTest.DAL.ServiceBus
                 }
                 else
                 {
-                    // Let the message be abandoned and retried
                     throw;
                 }
             }
@@ -110,8 +117,6 @@ namespace CoreBankingTest.DAL.ServiceBus
                 typeof(TMessage).Name, args.ErrorSource);
             return Task.CompletedTask;
         }
-
-        protected abstract Task HandleMessageAsync(TMessage message, CancellationToken cancellationToken);
 
         public async ValueTask DisposeAsync()
         {

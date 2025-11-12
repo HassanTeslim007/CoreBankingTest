@@ -1,44 +1,57 @@
-﻿using CoreBanking.Core.Events;
+﻿using CoreBankingTest.Core.Events;
+using CoreBankingTest.Core.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CoreBankingTest.APP.Accounts.EventHandlers
+namespace CoreBankingTest.Application.Transactions.EventHandlers
 {
-    public class MoneyTransferedEventHandler : INotificationHandler<MoneyTransferedEvent>
+    public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferedEvent>
     {
-        private readonly ILogger<MoneyTransferedEventHandler> _logger;
-        //private readonly INotificationService _notificationService;
-        //private readonly IReportingService _reportingService;
+        private readonly ILogger<MoneyTransferredEventHandler> _logger;
+        private readonly IFraudDetectionService _fraudDetectionService;
+        private readonly INotificationBroadcaster _notificationBroadcaster;
 
-        //public MoneyTransferedEventHandler(ILogger<MoneyTransferedEventHandler> logger, INotificationService notificationService, IReportingService reportingService)
-        public MoneyTransferedEventHandler(ILogger<MoneyTransferedEventHandler> logger)
+        public MoneyTransferredEventHandler(
+            ILogger<MoneyTransferredEventHandler> logger,
+            IFraudDetectionService fraudDetectionService,
+            INotificationBroadcaster notificationBroadcaster)
         {
             _logger = logger;
-            //_notificationService = notificationService;
-            //_reportingService = reportingService;
+            _fraudDetectionService = fraudDetectionService;
+            _notificationBroadcaster = notificationBroadcaster;
         }
 
         public async Task Handle(MoneyTransferedEvent notification, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Processing money transferred event for transaction {TransactionId}",
+            _logger.LogInformation("Processing MoneyTransferredEvent for transaction {TransactionId}",
                 notification.TransactionId);
 
-            // Send notifications to both parties
-            /*await _notificationService.SendTransferNotificationAsync(
-                notification.SourceAccountNumber,
-                notification.DestinationAccountNumber,
-                notification.Amount);
+            // Check for potential fraud
+            var fraudResult = await _fraudDetectionService.CheckTransactionAsync(notification, cancellationToken);
 
-            // Update reporting and analytics
-            await _reportingService.RecordTransactionAsync(notification);*/
+            if (fraudResult.IsSuspicious)
+            {
+                _logger.LogWarning(
+                    "Suspicious transaction detected: {TransactionId}. Score: {Score}, Reason: {Reason}",
+                    notification.TransactionId, fraudResult.RiskScore, fraudResult.Reason);
 
-            // Could also: Update fraud detection, trigger compliance monitoring, etc.
-            _logger.LogInformation("Successfully processed money transferred event");
+                // Use your notification broadcaster instead of direct notification service
+                await _notificationBroadcaster.BroadcastFraudAlertAsync(
+                    notification.TransactionId.Value,
+                    fraudResult.Reason,
+                    notification.Amount.Amount);
+            }
+
+            // Send transaction notification
+            await _notificationBroadcaster.BroadcastTransactionAsync(
+                notification.TransactionId.Value,
+                notification.Amount.Amount,
+                "Transfer",
+                notification.SourceAccountNumber.Value,
+                notification.DestinationAccountNumber.Value);
+
+            _logger.LogInformation("Completed fraud check for transaction {TransactionId}", notification.TransactionId);
         }
+
     }
 }

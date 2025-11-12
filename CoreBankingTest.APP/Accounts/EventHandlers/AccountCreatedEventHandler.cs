@@ -1,4 +1,4 @@
-﻿using CoreBanking.Core.Events;
+﻿using CoreBankingTest.Core.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;

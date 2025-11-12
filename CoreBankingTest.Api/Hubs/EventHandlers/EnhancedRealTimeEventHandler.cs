@@ -1,5 +1,4 @@
-﻿using CoreBanking.Core.Events;
-using CoreBankingTest.Api.Hubs.Interfaces;
+﻿using CoreBankingTest.Api.Hubs.Interfaces;
 using CoreBankingTest.Api.Hubs.Management;
 using CoreBankingTest.Api.Hubs.Models;
 using CoreBankingTest.Core.Events;

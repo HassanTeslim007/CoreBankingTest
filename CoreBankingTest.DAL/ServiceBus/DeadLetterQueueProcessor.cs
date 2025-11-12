@@ -1,30 +1,24 @@
 ﻿using Azure.Messaging.ServiceBus;
+using CoreBankingTest.Core.Models;
+using CoreBankingTest.Infrastructure.ServiceBus;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CoreBankingTest.DAL.ServiceBus
 {
-    public interface IDeadLetterQueueProcessor
-    {
-        Task ProcessDeadLetterMessagesAsync(string queueOrTopicName, string subscriptionName, CancellationToken cancellationToken);
-        Task<int> ReprocessDeadLetterMessagesAsync(string sourceQueue, string destinationQueue, int maxMessages, CancellationToken cancellationToken);
-        Task<List<DeadLetterMessage>> GetDeadLetterMessagesAsync(string queueOrTopicName, string subscriptionName, int maxMessages, CancellationToken cancellationToken);
-    }
-
     public class DeadLetterQueueProcessor : IDeadLetterQueueProcessor
     {
         private readonly IServiceBusClientFactory _clientFactory;
         private readonly ILogger<DeadLetterQueueProcessor> _logger;
+        private readonly IBankingServiceBusSender _bankingServiceBusSender;
 
         public DeadLetterQueueProcessor(
             IServiceBusClientFactory clientFactory,
+            IBankingServiceBusSender bankingServiceBusSender,
             ILogger<DeadLetterQueueProcessor> logger)
         {
             _clientFactory = clientFactory;
+            _bankingServiceBusSender = bankingServiceBusSender;
             _logger = logger;
         }
 
@@ -40,8 +34,8 @@ namespace CoreBankingTest.DAL.ServiceBus
             try
             {
                 var dlqEntityPath = string.IsNullOrEmpty(subscriptionName)
-                    ? EntityNameHelper.FormatDeadLetterPath(queueOrTopicName)
-                    : EntityNameHelper.FormatSubQueuePath(queueOrTopicName, subscriptionName, EntityNameHelper.DeadLetterQueueName);
+                    ? $"{queueOrTopicName}/$deadletterqueue"  // Queue DLQ
+                    : $"{queueOrTopicName}/Subscriptions/{subscriptionName}/$deadletterqueue";  // Topic Subscription DLQ
 
                 dlqReceiver = _clientFactory.CreateReceiver(dlqEntityPath, new ServiceBusReceiverOptions
                 {
@@ -88,17 +82,14 @@ namespace CoreBankingTest.DAL.ServiceBus
         {
             var processedCount = 0;
             ServiceBusReceiver dlqReceiver = null;
-            ServiceBusSender destinationSender = null;
 
             try
             {
-                var dlqPath = EntityNameHelper.FormatDeadLetterPath(sourceQueue);
+                var dlqPath = $"{sourceQueue}/$deadletterqueue";
                 dlqReceiver = _clientFactory.CreateReceiver(dlqPath, new ServiceBusReceiverOptions
                 {
                     ReceiveMode = ServiceBusReceiveMode.PeekLock
                 });
-
-                destinationSender = _clientFactory.CreateSender(destinationQueue);
 
                 var messages = await dlqReceiver.ReceiveMessagesAsync(maxMessages, TimeSpan.FromSeconds(30), cancellationToken);
 
@@ -124,7 +115,8 @@ namespace CoreBankingTest.DAL.ServiceBus
                         reprocessedMessage.ApplicationProperties["OriginalMessageId"] = message.MessageId;
                         reprocessedMessage.ApplicationProperties["ReprocessedAt"] = DateTime.UtcNow;
 
-                        await destinationSender.SendMessageAsync(reprocessedMessage, cancellationToken);
+                        // Send the reprocessed message
+                        await _bankingServiceBusSender.SendMessageAsync(destinationQueue, reprocessedMessage, cancellationToken);
 
                         // Complete the original DLQ message
                         await dlqReceiver.CompleteMessageAsync(message, cancellationToken);
@@ -145,7 +137,6 @@ namespace CoreBankingTest.DAL.ServiceBus
             finally
             {
                 if (dlqReceiver != null) await dlqReceiver.DisposeAsync();
-                if (destinationSender != null) await destinationSender.DisposeAsync();
             }
         }
 
@@ -166,16 +157,5 @@ namespace CoreBankingTest.DAL.ServiceBus
                 // For example, send alerts, update monitoring systems, etc.
             }
         }
-    }
-
-    public class DeadLetterMessage
-    {
-        public string MessageId { get; set; } = string.Empty;
-        public string DeadLetterReason { get; set; } = string.Empty;
-        public string DeadLetterErrorDescription { get; set; } = string.Empty;
-        public DateTimeOffset EnqueuedTime { get; set; }
-        public string Content { get; set; } = string.Empty;
-        public Dictionary<string, string> Properties { get; set; } = new();
-        public int DeliveryCount { get; set; }
     }
 }

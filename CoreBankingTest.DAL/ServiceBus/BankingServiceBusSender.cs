@@ -1,7 +1,8 @@
 ﻿using Azure.Messaging.ServiceBus;
+using CoreBankingTest.Infrastructure.ServiceBus;
 using Microsoft.Extensions.Logging;
 
-namespace CoreBankingTest.Infrastructure.ServiceBus;
+namespace CoreBankingTest.DAL.ServiceBus;
 
 public class BankingServiceBusSender: IBankingServiceBusSender, IAsyncDisposable
 {

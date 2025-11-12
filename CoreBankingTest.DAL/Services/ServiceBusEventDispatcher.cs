@@ -2,16 +2,10 @@
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Interfaces;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace CoreBankingTest.DAL.Services
 {
-
     public class ServiceBusEventDispatcher : IDomainEventDispatcher
     {
         private readonly IEventPublisher _eventPublisher;
@@ -66,7 +60,15 @@ namespace CoreBankingTest.DAL.Services
             _logger.LogInformation("Dispatched {EventCount} domain events", eventsList.Count);
         }
 
+        public async Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
+        {
+            // This method seems to be from your original interface - implement if needed
+            // If you don't need it, you can remove it from the interface
+            throw new NotImplementedException();
+        }
+
         public IReadOnlyList<IDomainEvent> GetPublishedEvents() => _publishedEvents.AsReadOnly();
+
         public void ClearPublishedEvents() => _publishedEvents.Clear();
 
         private async Task StoreFailedEventAsync(IDomainEvent domainEvent, Exception exception)
@@ -86,11 +88,6 @@ namespace CoreBankingTest.DAL.Services
 
             // TODO: Implement persistent storage for failed events
             await Task.CompletedTask;
-        }
-
-        public Task DispatchDomainEventsAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }

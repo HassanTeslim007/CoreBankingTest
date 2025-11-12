@@ -4,14 +4,6 @@ using System.Collections.Concurrent;
 
 namespace CoreBankingTest.DAL.ServiceBus
 {
-    public interface IServiceBusClientFactory
-    {
-        ServiceBusClient CreateClient();
-        ServiceBusSender CreateSender(string queueOrTopicName);
-        ServiceBusReceiver CreateReceiver(string queueName, ServiceBusReceiverOptions options = null);
-        ServiceBusProcessor CreateProcessor(string queueName, ServiceBusProcessorOptions options = null);
-    }
-
     public class ServiceBusClientFactory : IServiceBusClientFactory, IAsyncDisposable
     {
         private readonly ServiceBusClient _client;
@@ -60,7 +52,15 @@ namespace CoreBankingTest.DAL.ServiceBus
         public ServiceBusProcessor CreateProcessor(string queueName, ServiceBusProcessorOptions options = null)
         {
             var processor = _client.CreateProcessor(queueName, options ?? new ServiceBusProcessorOptions());
-            _logger.LogDebug("Created Service Bus processor for {Queue}", queueName);
+            _logger.LogDebug("Created Service Bus processor for queue: {Queue}", queueName);
+            return processor;
+        }
+
+        public ServiceBusProcessor CreateProcessor(string topicName, string subscriptionName, ServiceBusProcessorOptions options = null)
+        {
+            var processor = _client.CreateProcessor(topicName, subscriptionName, options ?? new ServiceBusProcessorOptions());
+            _logger.LogDebug("Created Service Bus processor for topic: {Topic}, subscription: {Subscription}",
+                topicName, subscriptionName);
             return processor;
         }
 

@@ -1,4 +1,4 @@
-﻿using CoreBanking.Core.Events;
+﻿using CoreBankingTest.Core.Events;
 using CoreBankingTest.Api.Hubs.Interfaces;
 using CoreBankingTest.Api.Hubs.Models;
 using MediatR;

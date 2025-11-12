@@ -1,12 +1,8 @@
 ﻿using Azure.Messaging.ServiceBus.Administration;
+using CoreBankingTest.DAL.ServiceBus;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CoreBankingTest.DAL.ServiceBus
+namespace CoreBankingTest.Infrastructure.ServiceBus
 {
     public class ServiceBusAdministration
     {

@@ -48,10 +48,10 @@ public class TransaferMoneyCommandHandler : IRequestHandler<TransferMoneyCommand
             //Execute Transafer using domain logic - this will now throw exceptions
 
             sourceAccount.Transfer(
-                amount: request.Amount,
+                transferAmount: request.Amount,
                 destination: destAccount,
                 reference: request.Reference,
-                description: request.Description
+                transferDescription: request.Description
                 );
 
             //save changes
