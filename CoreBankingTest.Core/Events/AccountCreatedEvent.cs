@@ -4,7 +4,7 @@ using CoreBankingTest.Core.Entities;
 using CoreBankingTest.Core.Enums;
 using CoreBankingTest.Core.ValueObjects;
 
-namespace CoreBanking.Core.Events;
+namespace CoreBankingTest.Core.Events;
 
 public record AccountCreatedEvent : DomainEvent
 {

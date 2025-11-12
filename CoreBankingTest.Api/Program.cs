@@ -13,6 +13,7 @@ using CoreBankingTest.APP.Accounts.EventHandlers;
 using CoreBankingTest.APP.Common.Behaviours;
 using CoreBankingTest.APP.Common.Interfaces;
 using CoreBankingTest.APP.Common.Mappings;
+using CoreBankingTest.APP.Common.Models;
 using CoreBankingTest.APP.External.HttpClients;
 using CoreBankingTest.APP.External.Interfaces;
 using CoreBankingTest.Core.Events;
@@ -21,11 +22,14 @@ using CoreBankingTest.CORE.Interfaces;
 using CoreBankingTest.DAL.Data;
 using CoreBankingTest.DAL.External.Resilience;
 using CoreBankingTest.DAL.Repositories;
+using CoreBankingTest.DAL.ServiceBus;
+using CoreBankingTest.DAL.ServiceBus.Handlers;
 using CoreBankingTest.DAL.Services;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Extensions.Http;
@@ -151,10 +155,68 @@ namespace CoreBankingTest.Api
         client.BaseAddress = new Uri(builder.Configuration["CreditScoringApi:BaseUrl"] ?? "https://api.example.com");
         client.DefaultRequestHeaders.Add("Accept", "application/json");
     });
+            // Add resilience options
+            builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));
+
+            // Add advanced Polly policies
+            builder.Services.AddSingleton<AdvancedPollyPolicies>();
+
+            // Add simulated external services
+            builder.Services.AddSingleton<ISimulatedCreditScoringService, SimulatedCreditScoringService>();
+
+            // Add Azure Service Bus (simulated for now - will configure properly in subscequent class)
+            //builder.Services.AddSingleton<IServiceBusSender>(provider =>
+            //{
+            //    var logger = provider.GetRequiredService<ILogger<ServiceBusSender>>();
+            //    // For today, we'll use a mock. Tomorrow we'll add real Azure Service Bus connection
+            //    return new MockServiceBusSender(logger);
+            //});
+
+            builder.Services.AddSingleton<IEventPublisher, ServiceBusEventPublisher>();
+            builder.Services.AddScoped<IDomainEventDispatcher, ServiceBusEventDispatcher>();
+
+            // Azure Service Bus Configuration
+            builder.Services.Configure<ServiceBusConfiguration>(builder.Configuration.GetSection("ServiceBus"));
+
+            // Service Bus Infrastructure
+            builder.Services.AddSingleton<IServiceBusClientFactory>(provider =>
+            {
+                var config = provider.GetRequiredService<IOptions<ServiceBusConfiguration>>().Value;
+                var logger = provider.GetRequiredService<ILogger<ServiceBusClientFactory>>();
+                return new ServiceBusClientFactory(config.ConnectionString, logger);
+            });
+
+            builder.Services.AddSingleton<ServiceBusAdministration>(provider =>
+            {
+                var config = provider.GetRequiredService<IOptions<ServiceBusConfiguration>>().Value;
+                var logger = provider.GetRequiredService<ILogger<ServiceBusAdministration>>();
+                return new ServiceBusAdministration(config.ConnectionString, config, logger);
+            });
+
+            builder.Services.AddSingleton<IEventPublisher, ServiceBusEventPublisher>();
+            builder.Services.AddScoped<IDomainEventDispatcher, ServiceBusEventDispatcher>();
+            builder.Services.AddSingleton<IDeadLetterQueueProcessor, DeadLetterQueueProcessor>();
+
+            // Message Handlers
+            builder.Services.AddSingleton<CustomerEventHandler>();
+            builder.Services.AddSingleton<TransactionEventHandler>();
+            builder.Services.AddSingleton<AccountEventHandler>();
+
+            // Background Services
+            builder.Services.AddHostedService<MessageProcessingService>();
+            builder.Services.AddHostedService<DeadLetterQueueMonitorService>();
 
             var app = builder.Build();
             // ------------------- PIPELINE -------------------
             app.UseHttpsRedirection();
+
+            // Ensure Service Bus infrastructure exists
+            using (var scope = app.Services.CreateScope())
+            {
+                var admin = scope.ServiceProvider.GetRequiredService<ServiceBusAdministration>();
+                await admin.EnsureInfrastructureExistsAsync();
+            }
+
 
             app.UseStaticFiles(); // Enables wwwroot
             if (app.Environment.IsDevelopment())

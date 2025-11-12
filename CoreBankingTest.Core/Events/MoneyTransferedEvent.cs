@@ -3,7 +3,7 @@ using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Entities;
 using CoreBankingTest.Core.ValueObjects;
 
-namespace CoreBanking.Core.Events;
+namespace CoreBankingTest.Core.Events;
 
 public record MoneyTransferedEvent : DomainEvent
 {

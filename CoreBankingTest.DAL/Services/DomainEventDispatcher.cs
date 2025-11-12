@@ -1,14 +1,10 @@
-﻿using CoreBankingTest.APP.Common.Interfaces;
+﻿
+using CoreBankingTest.APP.Common.Interfaces;
 using CoreBankingTest.Core.Common;
 using CoreBankingTest.Core.Interfaces;
 using CoreBankingTest.DAL.Data;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CoreBankingTest.DAL.Services
 {
@@ -26,6 +22,16 @@ namespace CoreBankingTest.DAL.Services
             _context = context;
             _publisher = publisher;
             _logger = logger;
+        }
+
+        public Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DispatchAsync(IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task DispatchDomainEventsAsync(CancellationToken cancellationToken = default)
